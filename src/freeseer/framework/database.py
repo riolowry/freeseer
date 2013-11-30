@@ -385,56 +385,24 @@ class QtDBConnector():
 
         Title and speaker must be present.
         """
-        file = open(fname, 'r')
-        try:
-            reader = csv.DictReader(file)
-            for row in reader:
-                try:
-                    title   = unicode(row['Title'], 'utf-8')
-                    speaker = unicode(row['Speaker'], 'utf-8')
-                except KeyError:
-                    log.error("Missing Key in Row: %s", row)
-                    return
+        entry = str(fname)
+        plugin = self.plugman.get_plugin_by_name("CSV Importer", "Importer")
+        importer = plugin.plugin_object
+        importer.pres_list = importer.get_presentations_list(entry)
 
-                try:
-                    abstract = unicode(row['Abstract'], 'utf-8')  # Description
-                except KeyError:
-                    abstract = ''
+        if not importer.pres_list:
+            log.info("CSV: No data found.")
 
-                try:
-                    level = unicode(row['Level'], 'utf-8')
-                except KeyError:
-                    level = ''
-
-                try:
-                    event = unicode(row['Event'], 'utf-8')
-                except KeyError:
-                    event = ''
-
-                try:
-                    room = unicode(row['Room'], 'utf-8')
-                except KeyError:
-                    room = ''
-
-                try:
-                    time = unicode(row['Time'], 'utf-8')
-                except KeyError:
-                    time = ''
-
-                talk = Presentation(title,
-                                    speaker,
-                                    abstract,
-                                    level,
-                                    event,
-                                    room,
-                                    time)
+        else:
+            for presentation in importer.pres_list:
+                talk = Presentation(presentation["Title"],
+                                    presentation["Speaker"],
+                                    presentation["Abstract"],  # Description
+                                    presentation["Level"],
+                                    presentation["Event"],
+                                    presentation["Room"],
+                                    presentation["Time"])
                 self.insert_presentation(talk)
-
-        except IOError:
-            log.error("CSV: File %s not found", file)
-
-        finally:
-            file.close()
 
     def export_talks_to_csv(self, fname):
         fieldNames = ('Title',
