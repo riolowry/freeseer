@@ -43,6 +43,8 @@ class TestDatabase(unittest.TestCase):
         '''
         self.configdir = tempfile.mkdtemp()
         self.db = QtDBConnector(self.configdir)
+        self._dirname = os.path.dirname(__file__)
+        self._csvfile = os.path.join(self._dirname, 'sample_talks.csv')
 
     def tearDown(self):
         '''
@@ -105,3 +107,13 @@ class TestDatabase(unittest.TestCase):
 
         self.db.add_talks_from_rss(feed2)
         self.assertTrue(self.db.presentation_exists(presentation2))
+
+    def test_add_talks_from_csv(self):
+        """Test that talks are retrieved from the CSV file"""
+
+        fname = self._csvfile
+
+        presentation = Presentation("Building NetBSD", "David Maxwell")
+
+        self.db.add_talks_from_csv(fname)
+        self.assertTrue(self.db.presentation_exists(presentation))
